@@ -27,9 +27,9 @@ class PlayListComponentTest {
     @MockBean
     private PlaylistRepository playlistRepository;
     @Test
-    void getPlaylistNotFound(OngoingStubbing<Optional<PlaylistEntity>> optionalOngoingStubbing){
+    void getPlaylistNotFound(){
         //Given
-        optionalOngoingStubbing;
+        when(playlistRepository.findById(anyString())).thenReturn(Optional.empty());
 
         //then - when
         assertThrows(NotFoundPlaylistEntityException.class,()->playlistComponent.getPlaylist("test"));
