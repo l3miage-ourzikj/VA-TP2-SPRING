@@ -46,6 +46,7 @@ public class PlaylistService {
             PlaylistEntity playlistEntity = playlistMapper.toEntity(playlistCreationRequest);
             playlistEntity.setSongEntities(songComponent.getSetSongEntity(playlistCreationRequest.getSongsIds()));
             return playlistMapper.toResponse(playlistComponent.createPlaylistEntity(playlistEntity));
+
         }catch (Exception e){
             throw new BadRequestRestException(e.getMessage());
         }
