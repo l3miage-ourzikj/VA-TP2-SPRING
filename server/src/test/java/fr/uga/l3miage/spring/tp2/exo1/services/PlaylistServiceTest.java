@@ -5,8 +5,10 @@ import fr.uga.l3miage.exo1.requests.PlaylistCreationRequest;
 import fr.uga.l3miage.exo1.response.PlaylistResponseDTO;
 import fr.uga.l3miage.spring.tp2.exo1.components.PlaylistComponent;
 import fr.uga.l3miage.spring.tp2.exo1.components.SongComponent;
+import fr.uga.l3miage.spring.tp2.exo1.exceptions.rest.AddingSongRestException;
 import fr.uga.l3miage.spring.tp2.exo1.exceptions.rest.NotFoundEntityRestException;
 import fr.uga.l3miage.spring.tp2.exo1.exceptions.technical.NotFoundPlaylistEntityException;
+import fr.uga.l3miage.spring.tp2.exo1.exceptions.technical.NotFoundSongEntityException;
 import fr.uga.l3miage.spring.tp2.exo1.mappers.PlaylistMapper;
 import fr.uga.l3miage.spring.tp2.exo1.models.PlaylistEntity;
 import fr.uga.l3miage.spring.tp2.exo1.models.SongEntity;
@@ -104,9 +106,9 @@ public class PlaylistServiceTest {
     }
 
     @Test
-    void  addSongInPlaylistPossible() throws NotFoundPlaylistEntityException {
+    void  addSongInPlaylistPossible() throws NotFoundPlaylistEntityException, NotFoundSongEntityException {
         //given
-        PlaylistEntity playlistEntity = PlaylistEntity.builder().name("HitList").songEntities(Set.of()).build();
+        PlaylistEntity playlistEntity = PlaylistEntity.builder().name("HitList").songEntities(new HashSet<>()).build();
         SongEntity son= SongEntity.builder().title("felecita").build();
         playlistEntity.getSongEntities().add(son);
         playlistComponent.createPlaylistEntity(playlistEntity);
@@ -114,6 +116,7 @@ public class PlaylistServiceTest {
 
         //when
         when(songComponent.getSetSongEntity(anySet())).thenReturn(Set.of(son));
+        when(songComponent.getSongEntityById(anyString())).thenReturn(son);
         when(playlistComponent.addSong(anyString(),any(SongEntity.class))).thenReturn(playlistEntity);
 
         PlaylistResponseDTO expectedResponse = playlistMapper.toResponse(playlistEntity);
@@ -131,12 +134,56 @@ public class PlaylistServiceTest {
     }
 
     //Quand ce n'est pas possible, c'est parce que la playlist ou le son n'est pas trouvé
-   /* @Test
-    void  addSongInPlaylistNotPossible(){
+   @Test
+    void  addSongInPlaylistNotPossibleBeacuseOfNotFoundSong() throws NotFoundSongEntityException, NotFoundPlaylistEntityException {
+
+       //given
+       PlaylistEntity playlistEntity = PlaylistEntity.builder().name("HitList").songEntities(new HashSet<>()).build();
+
+       //when
+       when(songComponent.getSetSongEntity(anySet())).thenReturn(Set.of());
+       when(songComponent.getSongEntityById(anyString())).thenThrow(new NotFoundSongEntityException ("Song not found with given id"));
+       when(playlistComponent.addSong(anyString(),any(SongEntity.class))).thenThrow(new AddingSongRestException("Adding not possible, song not found !"));
+
+
+
+       assertThrows(AddingSongRestException.class,()-> playlistService.addSongInPlaylist("HitList","felecita"));
+       verify(playlistMapper,times(0)).toResponse(same(playlistEntity));
+       verify(playlistComponent,times(0)).addSong(anyString(),any(SongEntity.class));
+       verify(songComponent,times(1)).getSongEntityById(anyString());
+
+
+
+
+
+   }
+
+    @Test
+    void  addSongInPlaylistNotPossibleBeacuseOfNotFoundPlaylist() throws NotFoundSongEntityException, NotFoundPlaylistEntityException {
+
+        //given
+        SongEntity son= SongEntity.builder().title("felecita").build();
+
+        //when
+        when(songComponent.getSetSongEntity(anySet())).thenReturn(Set.of(son));
+        when(songComponent.getSongEntityById(anyString())).thenReturn(son);
+        when(playlistComponent.getPlaylist(anyString())).thenThrow(new NotFoundPlaylistEntityException("playlist not found with given id"));
+        when(playlistComponent.addSong(anyString(),any(SongEntity.class))).thenThrow(new AddingSongRestException("Adding not possible, playlist not found !"));
+
+
+
+        assertThrows(AddingSongRestException.class,()-> playlistService.addSongInPlaylist("HitList","felecita"));
+        verify(playlistComponent,times(1)).addSong(anyString(),any(SongEntity.class));
+        verify(playlistComponent,times(0)).getPlaylist(anyString());
+        verify(songComponent,times(1)).getSongEntityById(anyString());
+
+
+
 
     }
 
-    */
+
+
 
 
 
