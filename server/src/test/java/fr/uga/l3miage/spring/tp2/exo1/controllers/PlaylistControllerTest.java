@@ -7,6 +7,7 @@ import fr.uga.l3miage.spring.tp2.exo1.components.PlaylistComponent;
 import fr.uga.l3miage.spring.tp2.exo1.components.SongComponent;
 import fr.uga.l3miage.spring.tp2.exo1.models.PlaylistEntity;
 import fr.uga.l3miage.spring.tp2.exo1.repositories.PlaylistRepository;
+import fr.uga.l3miage.spring.tp2.exo1.services.PlaylistService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -30,6 +31,9 @@ import static org.mockito.Mockito.verify;
 @AutoConfigureTestDatabase
 @AutoConfigureWebClient
 public class PlaylistControllerTest {
+    @SpyBean
+    private PlaylistService playlistService;
+
     @Autowired
     private TestRestTemplate testRestTemplate;
 
@@ -60,6 +64,8 @@ public class PlaylistControllerTest {
                 .description("une playlist de test")
                 .songsIds(Set.of())
                 .build();
+
+
 
 
         // when
@@ -96,5 +102,36 @@ public class PlaylistControllerTest {
                 .isEqualTo(notFoundErrorResponseExpected);
     }
 
+    @Test
+    void getPlaylistFound() {
+        //Given
+        final PlaylistCreationRequest request = PlaylistCreationRequest
+                .builder()
+                .name("Summer vibes")
+                .description("une playlist de test")
+                .songsIds(Set.of())
+                .build();
+
+        final HttpHeaders headers = new HttpHeaders();
+
+        final Map<String, Object> urlParams = new HashMap<>();
+        urlParams.put("idPlaylist", "Summer vibes");
+
+
+
+        //when
+        //ici soit je crée ma plalylist via son service ou sinon je vise une autre fois l'endpoint de création testé précédement pour la créer.
+        PlaylistResponseDTO expectedResponse= playlistService.createPlaylist(request);
+        ResponseEntity<PlaylistResponseDTO> response = testRestTemplate.exchange("/api/playlist/{idPlaylist}", HttpMethod.GET, new HttpEntity<>(null, headers), PlaylistResponseDTO.class, urlParams);
+
+        //then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(expectedResponse);
+        verify(playlistService, times(1)).createPlaylist(ArgumentMatchers.any(PlaylistCreationRequest.class));
+        verify(playlistComponent, times(1)).createPlaylistEntity(ArgumentMatchers.any(PlaylistEntity.class));
+
+
+
+    }
 
 }
