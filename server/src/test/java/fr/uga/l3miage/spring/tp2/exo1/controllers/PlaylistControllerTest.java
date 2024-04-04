@@ -1,5 +1,6 @@
 package fr.uga.l3miage.spring.tp2.exo1.controllers;
 
+import fr.uga.l3miage.exo1.errors.NotFoundErrorResponse;
 import fr.uga.l3miage.exo1.requests.PlaylistCreationRequest;
 import fr.uga.l3miage.exo1.response.PlaylistResponseDTO;
 import fr.uga.l3miage.spring.tp2.exo1.components.PlaylistComponent;
@@ -13,11 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureWebClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -27,7 +29,7 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,properties = "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect")
 @AutoConfigureTestDatabase
 @AutoConfigureWebClient
-public class PlaylistControllertest {
+public class PlaylistControllerTest {
     @Autowired
     private TestRestTemplate testRestTemplate;
 
@@ -71,6 +73,28 @@ public class PlaylistControllertest {
     }
 
 
+    @Test
+    void getNotFoundPlaylist() {
+        //Given
+        final HttpHeaders headers = new HttpHeaders();
+
+        final Map<String, Object> urlParams = new HashMap<>();
+        urlParams.put("idPlaylist", "ma playlist qui n'existe pas");
+
+        NotFoundErrorResponse notFoundErrorResponseExpected = NotFoundErrorResponse
+                .builder()
+                .uri("/api/playlist/ma%20playlist%20qui%20n%27existe%20pas")
+                .errorMessage("La playlist [ma playlist qui n'existe pas] n'a pas été trouvé")
+                .build();
+
+        //when
+        ResponseEntity<NotFoundErrorResponse> response = testRestTemplate.exchange("/api/playlist/{idPlaylist}", HttpMethod.GET, new HttpEntity<>(null, headers), NotFoundErrorResponse.class, urlParams);
+
+        //then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).usingRecursiveComparison()
+                .isEqualTo(notFoundErrorResponseExpected);
+    }
 
 
 }
