@@ -19,7 +19,7 @@ public interface PlaylistEndpoints {
 
     @Operation(description = "Ajouter un son à une playlist")
     @ApiResponse(responseCode = "200",description = "Le son à été ajouté à la playlist")
-    @ApiResponse(responseCode = "404", description = "Une erreur c'est produit, la playlist ou le son demandée n'a pas été trouvé",content = @Content(schema = @Schema(implementation = AddPlaylistErrorResponse.class),mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "404", description = "Une erreur s'est produite, la playlist ou le son demandé n'a pas été trouvé",content = @Content(schema = @Schema(implementation = AddPlaylistErrorResponse.class),mediaType = MediaType.APPLICATION_JSON_VALUE))
     @ResponseStatus(HttpStatus.OK)
     @PatchMapping("/{idPlaylist}/add")
     PlaylistResponseDTO addSongInPlaylist(@PathVariable(name = "idPlaylist")String idPlaylist, @RequestParam String idSong);
@@ -35,7 +35,7 @@ public interface PlaylistEndpoints {
 
     @Operation(description = "Création d'une playlist")
     @ApiResponse(responseCode = "201",description = "La Playlist à bien été créé")
-    @ApiResponse(responseCode = "400",description = "une erreur c'est produit avec la requête")
+    @ApiResponse(responseCode = "400",description = "une erreur s'est produite avec la requête")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/create")
     PlaylistResponseDTO createPlaylist(@RequestBody  PlaylistCreationRequest playlistCreationRequest);
